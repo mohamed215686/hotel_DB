@@ -10,7 +10,6 @@ import com.example.Backend.model.Reservation;
 // import com.example.Backend.repository.ChambreRepository;
 
 import com.example.Backend.repository.ReservationRepository;
-// 🚩 NEW IMPORTS FOR VALIDATION (if needed later):
 import com.example.Backend.repository.ClientRepository;
 import com.example.Backend.repository.ChambreRepository;
 
@@ -45,6 +44,7 @@ public class ReservationController {
         if (!clientRepository.existsById(dto.getClientId())) {
             throw new ResourceNotFoundException("Client not found with ID: " + dto.getClientId());
         }
+
         if (!chambreRepository.existsById(dto.getChambreId())) {
             throw new ResourceNotFoundException("Chambre not found with ID: " + dto.getChambreId());
         }
@@ -59,4 +59,5 @@ public class ReservationController {
 
         return new ResponseEntity<>("Reservation created via procedure for client ID: " + dto.getClientId(), HttpStatus.CREATED);
     }
+
 }
