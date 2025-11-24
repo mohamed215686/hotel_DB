@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
     // You can add custom finders here if needed, e.g.,
+    Optional<Utilisateur> findByLoginIgnoreCase(String login);
+
     Optional<Utilisateur> findByLogin(String login);
     @Procedure(procedureName = "ADD_UTILISATEUR")
     void executeAddUtilisateur(
