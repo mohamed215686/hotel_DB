@@ -1,0 +1,22 @@
+CREATE OR REPLACE FUNCTION FNC_CALCULER_MONTANT_FACTURE (
+    p_facture_id IN NUMBER
+)
+RETURN NUMBER
+AS
+    v_montant_total NUMBER;
+BEGIN
+    -- Selectionner la somme des MONTANT_PARTIEL (qui est Prix*Quantite)
+    SELECT NVL(SUM(MONTANT_PARTIEL), 0)
+    INTO v_montant_total
+    FROM LIGNE_FACTURE
+    WHERE FACTURE_ID = p_facture_id;
+
+    RETURN v_montant_total;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0;
+    WHEN OTHERS THEN
+        RAISE;
+END FNC_CALCULER_MONTANT_FACTURE;
+/
