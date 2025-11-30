@@ -29,11 +29,3 @@ CREATE OR REPLACE PROCEDURE supprimer_service(
      WHEN OTHERS THEN 
         RAISE_APPLICATION_ERROR(-20000, 'Erreur inattendue lors de la suppression : ' || SQLERRM);
  END;
- 
- 
---test 
-BEGIN
-supprimer_service(9);
-END;
---affichage des services apres modification
-select * from service;
