@@ -32,14 +32,3 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20000, 'Erreur inattendue lors de l''ajout du service : ' || SQLERRM);
 END;
 /
---affichage des services avant modification
-select * from service;
-
---TEST 
-BEGIN
-    ajouter_service('rest3', 250);
-END;
-/
-
---affichage des services apres modification
-select * from service;
