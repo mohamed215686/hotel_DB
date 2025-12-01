@@ -2,6 +2,7 @@ package com.example.Backend.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "SERVICE")
@@ -20,6 +21,9 @@ public class Service {
 
     // Default constructor (required by JPA)
     public Service() {}
+
+    @ManyToMany(mappedBy = "services") // Specifies that the 'services' field in the Reservation class owns this relationship
+    private List<Reservation> reservations;
 
     // Getters and Setters
     public Long getServiceId() { return serviceId; }

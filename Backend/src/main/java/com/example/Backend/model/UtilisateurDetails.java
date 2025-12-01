@@ -60,4 +60,8 @@ public class UtilisateurDetails implements UserDetails {
     public Long getUtilisateurId() {
         return utilisateur.getUtilisateurId();
     }
+
+    public Long getRoleId() {
+        return utilisateur.getRoleId();
+    }
 }

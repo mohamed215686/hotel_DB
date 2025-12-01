@@ -1,7 +1,9 @@
 package com.example.Backend.model;
 
+import com.example.Backend.dto.ReservationCreateDTO;
 import jakarta.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "RESERVATION")
@@ -57,4 +59,18 @@ public class Reservation {
     public void setStatut(String statut) { this.statut = statut; }
     public Date getDateCreation() { return dateCreation; }
     public void setDateCreation(Date dateCreation) { this.dateCreation = dateCreation; }
+
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "associe", // The name of your intermediate join table
+            joinColumns = @JoinColumn(name = "RES_ID"), // The column in 'associe' that refers to THIS entity (Reservation)
+            inverseJoinColumns = @JoinColumn(name = "SERVICE_ID") // The column in 'associe' that refers to the OTHER entity (Service)
+    )
+    private List<Service> services;
+
+    // The method you were trying to implement:
+    public List<Service> getServices() {
+        return this.services;
+    }
 }

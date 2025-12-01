@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
     @Procedure(procedureName = "ADD_CLIENT")
@@ -16,4 +18,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
             @Param("p_email") String email,
             @Param("p_adresse") String adresse
     );
+
+    Optional<Client> findByUtilisateur_UtilisateurId(Long utilisateurId);
 }
