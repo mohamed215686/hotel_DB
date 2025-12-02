@@ -27,6 +27,18 @@ public class Facture {
     @Temporal(TemporalType.DATE)
     private Date dateEmission;
 
+    @Column(name = "RES_ID", nullable = false) // Assuming the column name is RES_ID
+    private Long resId;
+
+// ... existing constructors/getters/setters ...
+
+    // Add the new getter and setter:
+    public Long getResId() {
+        return resId;
+    }
+    public void setResId(Long resId) {
+        this.resId = resId;
+    }
     // Default constructor (required by JPA)
     public Facture() {}
 

@@ -6,9 +6,11 @@ import com.example.Backend.service.JpaUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder; // Assuming temporary use for plaintext
@@ -51,25 +53,25 @@ public class SecurityConfig {
                     // 2. INVENTORY & SERVICES (Chambre, Service) - Staff Access
                     // =================================================================
                     // Write access requires MANAGER or ADMIN
-                    auth.requestMatchers(HttpMethod.POST, "/chambres/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.PUT, "/chambres/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.DELETE, "/chambres/**").hasAnyAuthority("ADMIN", "Manager");
+                    auth.requestMatchers(HttpMethod.POST, "/chambres/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.PUT, "/chambres/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/chambres/**").hasAnyAuthority("ADMIN", "MANAGER");
 
-                    auth.requestMatchers(HttpMethod.POST, "/services/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.PUT, "/services/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.DELETE, "/services/**").hasAnyAuthority("ADMIN", "Manager");
+                    auth.requestMatchers(HttpMethod.POST, "/services/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.PUT, "/services/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/services/**").hasAnyAuthority("ADMIN", "MANAGER");
 
                     // Read access (GET) is granted to any authenticated user
-                    auth.requestMatchers(HttpMethod.GET, "/chambres/**").authenticated();
-                    auth.requestMatchers(HttpMethod.GET, "/services/**").authenticated();
+                    auth.requestMatchers(HttpMethod.GET, "/chambres/**").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/services/**").permitAll();
 
 
                     // =================================================================
                     // 3. BILLING & FINANCIAL (Facture, LigneFacture) - Staff Access
                     // =================================================================
                     // Read and Write access requires MANAGER or ADMIN
-                    auth.requestMatchers("/factures/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers("/lignes-facture/**").hasAnyAuthority("ADMIN", "Manager");
+                    auth.requestMatchers("/factures/**").hasAnyAuthority("ADMIN", "MANAGER","Réceptionniste");
+                    auth.requestMatchers("/lignes-facture/**").hasAnyAuthority("ADMIN", "MANAGER","Réceptionniste");
 
 
                     // =================================================================
@@ -84,19 +86,23 @@ public class SecurityConfig {
 
                     // 🚩 FIX 1: Allow any authenticated user to create a client or reservation
                     auth.requestMatchers(HttpMethod.POST, "/clients").authenticated();
-                    auth.requestMatchers(HttpMethod.POST, "/reservations").authenticated(); // <-- CLIENT CAN POST!
+                    auth.requestMatchers(HttpMethod.POST, "/reservations").authenticated();
+
+                    auth.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/auth/signup").permitAll();
+                    auth.requestMatchers("/auth/profile/**").authenticated();
 
                     // Rule 4.3: High-Privilege Write Access (Still restricted to staff)
-                    auth.requestMatchers(HttpMethod.PUT, "/clients/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.DELETE, "/clients/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.PUT, "/reservations/**").hasAnyAuthority("ADMIN", "Manager");
-                    auth.requestMatchers(HttpMethod.DELETE, "/reservations/**").hasAnyAuthority("ADMIN", "Manager");// =================================================================
+                    auth.requestMatchers(HttpMethod.PUT, "/clients/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/clients/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.PUT, "/reservations/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    auth.requestMatchers(HttpMethod.DELETE, "/reservations/**").hasAnyAuthority("ADMIN", "MANAGER");
+                    // =================================================================
                     // 5. CATCH-ALL DEFAULT
                     // =================================================================
                     // All other requests (mostly GETs on less restricted resources) MUST be authenticated.
                     auth.anyRequest().authenticated();
                 })
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for REST APIs
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(frm -> frm.disable());
 
@@ -121,4 +127,10 @@ public class SecurityConfig {
         // Staff roles are 1L (Admin) and 3L (Manager/Receptionist - based on your example)
         return userRoleId != null && (userRoleId.equals(1L) || userRoleId.equals(3L));
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
 }

@@ -26,19 +26,7 @@ public class RoleController {
         return roleRepository.findAll();
     }
 
-    @PostMapping("/add_role")
-    public ResponseEntity<String> createRoleUsingProcedure( @RequestBody RoleCreateDTO roleDto) {
 
-        // Call the repository method, which triggers the Oracle procedure
-        roleRepository.executeAddRole(
-                roleDto.getNomRole(),
-                roleDto.getDescription()
-        );
-
-        // Since the procedure handles the INSERT and ID generation,
-        // we return a success status (201 Created) without the new ID.
-        return new ResponseEntity<>("Role created via Oracle procedure: " + roleDto.getNomRole(), HttpStatus.CREATED);
-    }
 
 
 }

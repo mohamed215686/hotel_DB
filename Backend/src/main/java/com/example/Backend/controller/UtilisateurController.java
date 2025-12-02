@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,24 +26,44 @@ public class UtilisateurController {
     private UtilisateurRepository utilisateurRepository;
 
     // 🚩 CORRECTION: RoleRepository is now only needed for validation
-    @Autowired
-    private RoleRepository roleRepository;
+    // @Autowired
+    // private RoleRepository roleRepository;
 
-    @PostMapping("/add-procedure")
-    @Transactional
-    public ResponseEntity<String> createUtilisateurUsingProcedure(@Valid @RequestBody UtilisateurCreateDTO dto) {
-
-        if (!roleRepository.existsById(dto.getRoleId())) {
-            throw new ResourceNotFoundException("Role not found with ID: " + dto.getRoleId());
+    // Helper to process the procedure's output message
+    private ResponseEntity<String> handleProcedureMessage(String message) {
+        if (message.startsWith("Erreur:")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
-
-        utilisateurRepository.executeAddUtilisateur(
-                dto.getRoleId(),
-                dto.getLogin(),
-                dto.getMotDePasseHash(),
-                "Y" // Default status
-        );
-
-        return new ResponseEntity<>("Utilisateur created via procedure: " + dto.getLogin(), HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
+
+    /**
+     * Adds a new Utilisateur (Staff account) using the PL/SQL procedure.
+     * Access limited to ADMIN.
+     */
+    @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<String> addUtilisateur(@Valid @RequestBody UtilisateurCreateDTO dto) {
+
+        // Note: In a secure application, you MUST hash the password here 
+        // before passing it to the database. We use the DTO's value directly
+        // because the provided DTO field is named motDePasseHash.
+
+        try {
+            String message = utilisateurRepository.executeAddUtilisateur(
+                    dto.getRoleId(),
+                    dto.getLogin(),
+                    dto.getMotDePasseHash()
+            );
+
+            return handleProcedureMessage(message);
+
+        } catch (Exception e) {
+            // Catch database connection or unexpected persistence errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur serveur lors de l'ajout de l'utilisateur: " + e.getMessage());
+        }
+    }
+
+
 }

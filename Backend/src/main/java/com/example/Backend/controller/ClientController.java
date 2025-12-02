@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import java.util.Date;
@@ -40,26 +41,30 @@ public class ClientController {
         return ResponseEntity.ok(client);
     }
 
-    // POST /clients
-    @PostMapping("/add-procedure")
-    @Transactional
-    public ResponseEntity<String> createClientUsingProcedure(@Valid @RequestBody ClientCreateDTO dto) {
+    @PostMapping("/walkin")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('Manager') or hasAuthority('Réceptionniste')")
+    public ResponseEntity<String> addClient(@Valid @RequestBody ClientCreateDTO dto) {
 
-        Long userId = dto.getUtilisateurId();
-        if (userId != null && !utilisateurRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("Utilisateur not found with ID: " + userId);
+        try {
+            String message = clientRepository.executeAddClient(
+                    dto.getNom(),
+                    dto.getPrenom(),
+                    dto.getTelephone(),
+                    dto.getEmail(),
+                    dto.getAdresse()
+            );
+
+            if (message.startsWith("Erreur:")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(message);
+
+        } catch (Exception e) {
+            // Handle unexpected SQL errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur serveur: " + e.getMessage());
         }
 
-        clientRepository.executeAddClient(
-                userId,
-                dto.getNom(),
-                dto.getPrenom(),
-                dto.getTelephone(),
-                dto.getEmail(),
-                dto.getAdresse()
-        );
-
-        return new ResponseEntity<>("Client created via procedure: " + dto.getNom(), HttpStatus.CREATED);
-    }
-
+}
 }
