@@ -1,29 +1,33 @@
 package com.example.Backend.controller;
 
-import com.example.Backend.dto.ReservationCreateDTO;
-import com.example.Backend.exception.ResourceNotFoundException;
-import com.example.Backend.model.Client;
-import com.example.Backend.model.Service;
-import com.example.Backend.model.UtilisateurDetails;
-import com.example.Backend.model.Reservation;
-import com.example.Backend.repository.ClientRepository;
-import com.example.Backend.repository.ReservationRepository;
-import com.example.Backend.repository.ChambreRepository;
-import com.example.Backend.repository.ServiceRepository;
-
-import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.example.Backend.dto.ReservationCreateDTO;
+import com.example.Backend.exception.ResourceNotFoundException;
+import com.example.Backend.model.Client;
+import com.example.Backend.model.Reservation;
+import com.example.Backend.model.Service;
+import com.example.Backend.model.UtilisateurDetails;
+import com.example.Backend.repository.ChambreRepository;
+import com.example.Backend.repository.ClientRepository;
+import com.example.Backend.repository.ReservationRepository;
+import com.example.Backend.repository.ServiceRepository;
 
-import java.util.Optional;
-import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/reservations")
@@ -45,70 +49,81 @@ public class ReservationController {
     // ==========================================================
     @PostMapping("/createReservation")
     public ResponseEntity<String> createReservation(
-            @Valid @RequestBody ReservationCreateDTO reservationDto,
-            @AuthenticationPrincipal UtilisateurDetails currentUser) {
+        @Valid @RequestBody ReservationCreateDTO reservationDto,
+        @AuthenticationPrincipal UtilisateurDetails currentUser) {
 
-        System.out.println("--- DEBUG: Starting createReservation request ---");
+    System.out.println("--- DEBUG: Starting createReservation request ---");
 
-        // --- 1. Security Check: Validate Client Ownership ---
-        Long currentUserId = currentUser.getUtilisateurId();
-        System.out.println("DEBUG: Authenticated Utilisateur ID: " + currentUserId);
+    Long currentUserId = currentUser.getUtilisateurId();
+    Long userRoleId = currentUser.getRoleId();
+    System.out.println("DEBUG: Authenticated Utilisateur ID: " + currentUserId + ", Role ID: " + userRoleId);
 
+    boolean isStaff = (userRoleId != null && (userRoleId.equals(1L) || userRoleId.equals(4L) || userRoleId.equals(3L)));
+    Long clientIdToUse;
+
+    if (isStaff) {
+        // Staff may create reservations for other clients: validate the client exists
+        System.out.println("DEBUG: Staff user detected—allowing reservation on behalf of client ID: " + reservationDto.getClientId());
+        if (!clientRepository.existsById(reservationDto.getClientId())) {
+            String errorMsg = "Client non trouvé avec ID: " + reservationDto.getClientId();
+            System.err.println("ERROR: " + errorMsg);
+            throw new ResourceNotFoundException(errorMsg);
+        }
+        clientIdToUse = reservationDto.getClientId();
+    } else {
+        // Non-staff: must have a client profile linked to the authenticated user and must book for themselves
         Optional<Client> clientOpt = clientRepository.findByUtilisateur_UtilisateurId(currentUserId);
-
         if (clientOpt.isEmpty()) {
             String errorMsg = "Client profile non trouvé pour l'utilisateur ID: " + currentUserId;
             System.err.println("ERROR: Security check failed. " + errorMsg);
-            throw new ResourceNotFoundException(errorMsg); // This throws a 404/500
+            throw new ResourceNotFoundException(errorMsg);
         }
-
         Client client = clientOpt.get();
         System.out.println("DEBUG: Mapped Client ID: " + client.getClientId());
 
-        // ENFORCEMENT CHECK: Client must book for their own CLIENT_ID
         if (!client.getClientId().equals(reservationDto.getClientId())) {
             String errorMsg = "Erreur: Client ID dans le token (" + client.getClientId() +
                     ") ne correspond pas au Client ID dans le DTO (" + reservationDto.getClientId() + ").";
             System.err.println("ERROR: Enforcement check failed. " + errorMsg);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMsg);
         }
-
-        System.out.println("DEBUG: Reservation DTO received: " + reservationDto);
-
-        // --- 2. Input Validation ---
-        if (!chambreRepository.existsById(reservationDto.getChambreId())) {
-            String errorMsg = "Chambre non trouvée avec ID: " + reservationDto.getChambreId();
-            System.err.println("ERROR: Input validation failed. " + errorMsg);
-            throw new ResourceNotFoundException(errorMsg);
-        }
-
-        System.out.println("DEBUG: Chambre " + reservationDto.getChambreId() + " confirmed available in repository.");
-
-        // --- 3. Execute Oracle Procedure: P_CREER_RESERVATION ---
-        System.out.println("DEBUG: Calling P_CREER_RESERVATION with params:");
-        System.out.println("  - Client ID: " + client.getClientId());
-        System.out.println("  - Chambre ID: " + reservationDto.getChambreId());
-        System.out.println("  - Date Début: " + reservationDto.getDateDebut());
-        System.out.println("  - Date Fin: " + reservationDto.getDateFin());
-
-        String message = reservationRepository.executeCreerReservation(
-                client.getClientId(),
-                reservationDto.getChambreId(),
-                reservationDto.getDateDebut(),
-                reservationDto.getDateFin()
-        );
-
-        // 4. Handle response message from Oracle
-        if (message.startsWith("Erreur:")) {
-            System.err.println("ERROR: Oracle Procedure returned an error. Message: " + message);
-            return ResponseEntity.badRequest().body(message);
-        }
-
-        System.out.println("DEBUG: Reservation successful. Message: " + message);
-        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        clientIdToUse = client.getClientId();
     }
 
+    System.out.println("DEBUG: Reservation DTO received: " + reservationDto);
 
+    // --- 2. Input Validation ---
+    if (!chambreRepository.existsById(reservationDto.getChambreId())) {
+        String errorMsg = "Chambre non trouvée avec ID: " + reservationDto.getChambreId();
+        System.err.println("ERROR: Input validation failed. " + errorMsg);
+        throw new ResourceNotFoundException(errorMsg);
+    }
+
+    System.out.println("DEBUG: Chambre " + reservationDto.getChambreId() + " confirmed available in repository.");
+
+    // --- 3. Execute Oracle Procedure: P_CREER_RESERVATION ---
+    System.out.println("DEBUG: Calling P_CREER_RESERVATION with params:");
+    System.out.println("  - Client ID: " + clientIdToUse);
+    System.out.println("  - Chambre ID: " + reservationDto.getChambreId());
+    System.out.println("  - Date Début: " + reservationDto.getDateDebut());
+    System.out.println("  - Date Fin: " + reservationDto.getDateFin());
+
+    String message = reservationRepository.executeCreerReservation(
+            clientIdToUse,
+            reservationDto.getChambreId(),
+            reservationDto.getDateDebut(),
+            reservationDto.getDateFin()
+    );
+
+    // 4. Handle response message from Oracle
+    if (message.startsWith("Erreur:")) {
+        System.err.println("ERROR: Oracle Procedure returned an error. Message: " + message);
+        return ResponseEntity.badRequest().body(message);
+    }
+
+    System.out.println("DEBUG: Reservation successful. Message: " + message);
+    return ResponseEntity.status(HttpStatus.CREATED).body(message);
+}
     // ==========================================================
     // READ OPERATIONS (Secured by SecurityConfig: GET /reservations/**)
     // ==========================================================
@@ -380,6 +395,7 @@ public class ReservationController {
     }
 
     @GetMapping("/{resId}/services")
+    @Transactional(readOnly = true) // Fix: Add @Transactional to keep session open for LAZY loading
     public ResponseEntity<?> getReservationServices(
             @PathVariable Long resId,
             @AuthenticationPrincipal UtilisateurDetails currentUser) {
@@ -431,10 +447,13 @@ public class ReservationController {
 
         // --- 3. EXECUTE DATA RETRIEVAL (The fix is here) ---
         // If authorization passed, fetch the services directly from the loaded entity.
+        // With @Transactional, the Hibernate session remains open, so LAZY loading will work.
         List<Service> associatedServices = reservation.getServices(); // ASSUMES a getServices() method exists on Reservation
 
-        // IMPORTANT: Ensure the relationship is eagerly loaded (FetchType.EAGER)
-        // OR the method is annotated with @Transactional to avoid a LazyInitializationException.
+        // Handle null case (no services added yet)
+        if (associatedServices == null) {
+            associatedServices = new java.util.ArrayList<>();
+        }
 
         return ResponseEntity.ok(associatedServices);
     }

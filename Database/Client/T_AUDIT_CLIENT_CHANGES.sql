@@ -4,8 +4,7 @@ FOR EACH ROW
 DECLARE
     v_user_id NUMBER;
 BEGIN
-    -- Try to identify the user linked to this client
-    v_user_id := :NEW.UTILISATEUR_ID;
+    
 
     -- Log only if contact info changes
     IF :OLD.TELEPHONE <> :NEW.TELEPHONE OR :OLD.ADRESSE <> :NEW.ADRESSE THEN
@@ -13,9 +12,9 @@ BEGIN
             AUDIT_ID, UTILISATEUR_ID, TABLENAME, ACTION, OLDVALUE, NEWVALUE, TIMESTAMP
         ) VALUES (
             AUDIT_SEQ.NEXTVAL, 
-            v_user_id, 
+            1, 
             'CLIENT', 
-            'Update Info Client ' || :NEW.CLIENT_ID, 
+            'Update Info Client ' || :NEW.CLIENT_ID|| ' (by DB User: ' || USER || ')', 
             'Tel: ' || :OLD.TELEPHONE || ' / Adr: ' || :OLD.ADRESSE, 
             'Tel: ' || :NEW.TELEPHONE || ' / Adr: ' || :NEW.ADRESSE, 
             SYSDATE

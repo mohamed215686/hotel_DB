@@ -1,21 +1,21 @@
 package com.example.Backend.controller;
 
-import com.example.Backend.dto.LigneFactureCreateDTO;
-import com.example.Backend.model.Facture;
-import com.example.Backend.repository.FactureRepository;
-import com.example.Backend.exception.ResourceNotFoundException;
-import jakarta.validation.Valid;
+import java.sql.SQLException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.util.List;
+import com.example.Backend.exception.ResourceNotFoundException;
+import com.example.Backend.model.Facture;
+import com.example.Backend.repository.FactureRepository;
 
 @RestController
 @RequestMapping("/factures")
@@ -60,6 +60,12 @@ public class FactureController {
                 .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec ID: " + id));
     }
 
+    @GetMapping("")
+    @PreAuthorize("hasAuthority('Admin') or hasAuthority('MANAGER') or hasAuthority('Réceptionniste')")
+    public ResponseEntity<List<Facture>> getAllFactures() {
+        List<Facture> list = factureRepository.findAll();
+        return ResponseEntity.ok(list);
+    }
     // ----------------------------------------------------------------------
     // --- WRITE ENDPOINTS (Staff Only) ---
     // ----------------------------------------------------------------------
