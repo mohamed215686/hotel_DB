@@ -1,0 +1,119 @@
+-- ########################################################
+-- SCRIPT: INSERTION DES DONNÉES DE TEST (FINAL)
+-- ########################################################
+
+SET SERVEROUTPUT ON;
+PROMPT Insertion des données de test...;
+
+-- ========================================================
+-- 1. ROLES
+-- ========================================================
+INSERT INTO ROLE (ROLE_ID, NOMROLE, DESCRIPTION) VALUES (ROLE_SEQ.NEXTVAL, 'Admin', 'Administrateur système');
+INSERT INTO ROLE (ROLE_ID, NOMROLE, DESCRIPTION) VALUES (ROLE_SEQ.NEXTVAL, 'Client', 'Client avec compte web');
+INSERT INTO ROLE (ROLE_ID, NOMROLE, DESCRIPTION) VALUES (ROLE_SEQ.NEXTVAL, 'Réceptionniste', 'Gestion des réservations');
+INSERT INTO ROLE (ROLE_ID, NOMROLE, DESCRIPTION) VALUES (ROLE_SEQ.NEXTVAL, 'Manager', 'Gérant de l''hôtel');
+
+-- ========================================================
+-- 2. UTILISATEURS
+-- ========================================================
+-- ID 1: Admin
+INSERT INTO UTILISATEUR (UTILISATEUR_ID, ROLE_ID, LOGIN, MOTDEPASSEHASH, ACTIF) 
+VALUES (UTILISATEUR_SEQ.NEXTVAL, 1, 'admin', 'admin123', 'Y');
+
+-- ID 2: Réceptionniste (Sophie)
+INSERT INTO UTILISATEUR (UTILISATEUR_ID, ROLE_ID, LOGIN, MOTDEPASSEHASH, ACTIF) 
+VALUES (UTILISATEUR_SEQ.NEXTVAL, 3, 'sophie', 'recep123', 'Y');
+
+-- ID 3: Manager (Marc)
+INSERT INTO UTILISATEUR (UTILISATEUR_ID, ROLE_ID, LOGIN, MOTDEPASSEHASH, ACTIF) 
+VALUES (UTILISATEUR_SEQ.NEXTVAL, 4, 'marc', 'manager123', 'Y');
+
+-- ID 4: Client Web (Alice)
+INSERT INTO UTILISATEUR (UTILISATEUR_ID, ROLE_ID, LOGIN, MOTDEPASSEHASH, ACTIF) 
+VALUES (UTILISATEUR_SEQ.NEXTVAL, 2, 'alice', 'alice123', 'Y');
+
+-- ID 5: Client Web (Bob)
+INSERT INTO UTILISATEUR (UTILISATEUR_ID, ROLE_ID, LOGIN, MOTDEPASSEHASH, ACTIF) 
+VALUES (UTILISATEUR_SEQ.NEXTVAL, 2, 'bob', 'bob123', 'Y');
+
+-- ========================================================
+-- 3. CLIENTS
+-- ========================================================
+-- Client 1: Alice (Liée user 4)
+INSERT INTO CLIENT (CLIENT_ID, UTILISATEUR_ID, NOM, PRENOM, TELEPHONE, EMAIL, ADRESSE, DATE_INSCRIPTION)
+VALUES (CLIENT_SEQ.NEXTVAL, 4, 'Dupont', 'Alice', '0601010101', 'alice@email.com', '10 Rue de Paris', SYSDATE-30);
+
+-- Client 2: Bob (Lié user 5)
+INSERT INTO CLIENT (CLIENT_ID, UTILISATEUR_ID, NOM, PRENOM, TELEPHONE, EMAIL, ADRESSE, DATE_INSCRIPTION)
+VALUES (CLIENT_SEQ.NEXTVAL, 5, 'Martin', 'Bob', '0602020202', 'bob@email.com', '25 Av. Lyon', SYSDATE-20);
+
+-- Client 3: Charlie (Walk-in, Pas de compte -> NULL)
+INSERT INTO CLIENT (CLIENT_ID, UTILISATEUR_ID, NOM, PRENOM, TELEPHONE, EMAIL, ADRESSE, DATE_INSCRIPTION)
+VALUES (CLIENT_SEQ.NEXTVAL, NULL, 'Chaplin', 'Charlie', '0603030303', 'charlie@nolink.com', 'Voyageur SDF', SYSDATE-1);
+
+-- ========================================================
+-- 4. CHAMBRES
+-- ========================================================
+INSERT INTO CHAMBRE (CHAMBRE_ID, NUMERO, TYPE, PRIX_NUITEE, STATUT) VALUES (CHAMBRE_SEQ.NEXTVAL, '101', 'Simple', 60, 'Disponible');
+INSERT INTO CHAMBRE (CHAMBRE_ID, NUMERO, TYPE, PRIX_NUITEE, STATUT) VALUES (CHAMBRE_SEQ.NEXTVAL, '102', 'Simple', 60, 'Occupé');
+INSERT INTO CHAMBRE (CHAMBRE_ID, NUMERO, TYPE, PRIX_NUITEE, STATUT) VALUES (CHAMBRE_SEQ.NEXTVAL, '201', 'Double', 90, 'Disponible');
+INSERT INTO CHAMBRE (CHAMBRE_ID, NUMERO, TYPE, PRIX_NUITEE, STATUT) VALUES (CHAMBRE_SEQ.NEXTVAL, '301', 'Suite Royale', 250, 'Disponible');
+
+-- ========================================================
+-- 5. SERVICES
+-- ========================================================
+INSERT INTO SERVICE (SERVICE_ID, LIBELLE, TARIF_UNITAIRE) VALUES (SERVICE_SEQ.NEXTVAL, 'Petit-déjeuner', 12);
+INSERT INTO SERVICE (SERVICE_ID, LIBELLE, TARIF_UNITAIRE) VALUES (SERVICE_SEQ.NEXTVAL, 'Parking Nuit', 15);
+INSERT INTO SERVICE (SERVICE_ID, LIBELLE, TARIF_UNITAIRE) VALUES (SERVICE_SEQ.NEXTVAL, 'Spa Accès', 30);
+
+-- ========================================================
+-- 6. RESERVATIONS
+-- ========================================================
+-- RES 1: Alice (Passée/Terminée)
+INSERT INTO RESERVATION (RES_ID, CLIENT_ID, CHAMBRE_ID, DATE_DEBUT, DATE_FIN, STATUT, DATE_CREATION)
+VALUES (RESERVATION_SEQ.NEXTVAL, 1, 1, SYSDATE-10, SYSDATE-7, 'Terminée', SYSDATE-15);
+
+-- RES 2: Bob (Future)
+INSERT INTO RESERVATION (RES_ID, CLIENT_ID, CHAMBRE_ID, DATE_DEBUT, DATE_FIN, STATUT, DATE_CREATION)
+VALUES (RESERVATION_SEQ.NEXTVAL, 2, 3, SYSDATE+5, SYSDATE+8, 'Confirmée', SYSDATE-2);
+
+-- RES 3: Charlie (En cours)
+INSERT INTO RESERVATION (RES_ID, CLIENT_ID, CHAMBRE_ID, DATE_DEBUT, DATE_FIN, STATUT, DATE_CREATION)
+VALUES (RESERVATION_SEQ.NEXTVAL, 3, 2, SYSDATE-1, SYSDATE+2, 'En cours', SYSDATE-1);
+
+-- ========================================================
+-- 7. ASSOCIE (Services consommés)
+-- ========================================================
+-- Alice a pris un petit-déj (Service 1) pour Res 1
+INSERT INTO ASSOCIE (RES_ID, SERVICE_ID) VALUES (1, 1); 
+
+-- Charlie a pris le Parking (Service 2) et Spa (Service 3) pour Res 3
+INSERT INTO ASSOCIE (RES_ID, SERVICE_ID) VALUES (3, 2);
+INSERT INTO ASSOCIE (RES_ID, SERVICE_ID) VALUES (3, 3);
+
+-- ========================================================
+-- 8. FACTURE (Seulement pour Alice qui a terminé)
+-- ========================================================
+-- Calcul manuel pour le test: (3 nuits * 60) + 12 = 192
+INSERT INTO FACTURE (FACTURE_ID, RES_ID, MONT_TOTAL, STATUT_PAIEMENT, DATE_PAIEMENT, DATE_EMISSION)
+VALUES (FACTURE_SEQ.NEXTVAL, 1, 192, 'Payé', SYSDATE, SYSDATE);
+
+-- ========================================================
+-- 9. LIGNE_FACTURE (Détails pour la facture d'Alice)
+-- ========================================================
+-- Ligne 1: La chambre (3 nuits)
+INSERT INTO LIGNE_FACTURE (
+    LIGNE_FACTURE_ID, FACTURE_ID, LIBELLE_DESCRIPTION, QUANTITE, PRIX_UNITAIRE, DATE_CONSOMMATION, MONTANT_PARTIEL
+) VALUES (
+    LIGNE_FACTURE_SEQ.NEXTVAL, 1, 'Chambre 101', 3, 60, SYSDATE-10, 180
+);
+
+-- Ligne 2: Le petit-déjeuner
+INSERT INTO LIGNE_FACTURE (
+    LIGNE_FACTURE_ID, FACTURE_ID, LIBELLE_DESCRIPTION, QUANTITE, PRIX_UNITAIRE, DATE_CONSOMMATION, MONTANT_PARTIEL
+) VALUES (
+    LIGNE_FACTURE_SEQ.NEXTVAL, 1, 'Petit-déjeuner', 1, 12, SYSDATE-9, 12
+);
+
+COMMIT;
+PROMPT Données de test insérées avec succès !;
