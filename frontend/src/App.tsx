@@ -10,6 +10,7 @@ import Services from './pages/Services';
 import Factures from './pages/Factures';
 import Profile from './pages/Profile';
 import Clients from './pages/Clients';
+import Users from './pages/Users';
 import Layout from './components/Layout';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="services" element={<Services />} />
         <Route path="factures" element={<Factures />} />
         <Route path="clients" element={<Clients />} />
+        <Route path="users" element={<Users />} />
         <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>

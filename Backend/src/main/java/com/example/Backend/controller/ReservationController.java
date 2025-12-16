@@ -144,7 +144,7 @@ public class ReservationController {
 
         // --- 2. SECURITY CHECK: STAFF ACCESS (Role IDs 1 and 2 can see all) ---
         // Assuming 1=Admin, 2=Receptionniste
-        if (userRoleId == 1L || userRoleId == 3L) {
+        if (userRoleId == 1L || userRoleId == 3L || userRoleId == 4L) {
             System.out.println("DEBUG: Access granted (Staff role " + userRoleId + ").");
             return ResponseEntity.ok(reservation);
         }
@@ -192,7 +192,7 @@ public class ReservationController {
 
         // --- 1. ACCESS FOR HOTEL STAFF (Admin, Manager, Receptionniste) ---
         // Assuming Admin (1) and Receptionniste (2) are staff roles that see all data.
-        if (userRoleId == 1L || userRoleId == 3L) {
+        if (userRoleId == 1L || userRoleId == 3L || userRoleId == 4L) {
             System.out.println("DEBUG: Staff user detected. Returning ALL reservations.");
             return ResponseEntity.ok(reservationRepository.findAll());
         }
@@ -232,7 +232,7 @@ public class ReservationController {
         Long userRoleId = currentUser.getRoleId();
 
         // Check if the user is authorized staff (Role 1 or Role 3)
-        if (userRoleId != 1L && userRoleId != 3L) {
+        if (userRoleId != 1L && userRoleId != 3L || userRoleId == 4L) {
             System.err.println("FORBIDDEN: User ID " + currentUser.getUtilisateurId() + " (Role ID: " + userRoleId + ") attempted Check-In/Out operation.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Only authorized staff can perform this operation.");
         }
@@ -258,7 +258,7 @@ public class ReservationController {
         Long userRoleId = currentUser.getRoleId();
 
         // Check if the user is authorized staff (Role 1 or Role 3)
-        if (userRoleId != 1L && userRoleId != 3L) {
+        if (userRoleId != 1L && userRoleId != 3L || userRoleId == 4L) {
             System.err.println("FORBIDDEN: User ID " + currentUser.getUtilisateurId() + " (Role ID: " + userRoleId + ") attempted Check-In/Out operation.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied. Only authorized staff can perform this operation.");
         }
@@ -281,7 +281,7 @@ public class ReservationController {
 
         // 1. Check for Staff Access (Admin or Manager/Receptionniste)
         // If user is Staff (Role 1 or 3), they have full cancellation permission.
-        if (userRoleId == 1L || userRoleId == 3L) {
+        if (userRoleId == 1L || userRoleId == 3L || userRoleId == 4L) {
             System.out.println("DEBUG: Staff user (ID: " + currentUserId + ") canceling reservation ID: " + id);
             // Skip further checks and proceed to cancellation
         } else {
@@ -356,7 +356,7 @@ public class ReservationController {
 
         // A. Check for Staff Access (Admin or Manager/Receptionniste)
         // Staff roles are assumed to be 1L or 3L based on previous code.
-        if (userRoleId == 1L || userRoleId == 3L) {
+        if (userRoleId == 1L || userRoleId == 3L || userRoleId == 4L) {
             System.out.println("DEBUG: Staff user (ID: " + currentUserId + ") adding service to reservation ID: " + resId);
             // Staff is authorized, skip client checks.
         } else {
@@ -420,7 +420,7 @@ public class ReservationController {
         boolean isAuthorized = false;
 
         // A. Staff Check (Role 1: Admin, Role 3: Manager/Receptionniste)
-        if (userRoleId != null && (userRoleId.equals(1L) || userRoleId.equals(3L))) {
+        if (userRoleId != null && (userRoleId.equals(1L) || userRoleId.equals(3L) || userRoleId.equals(4L))) {
             System.out.println("DEBUG: Staff user (ID: " + currentUserId + ") viewing services for reservation ID: " + resId);
             isAuthorized = true;
         }

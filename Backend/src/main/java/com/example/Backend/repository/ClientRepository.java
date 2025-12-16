@@ -1,12 +1,13 @@
 package com.example.Backend.repository;
 
-import com.example.Backend.model.Client;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import com.example.Backend.model.Client;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
@@ -22,7 +23,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
             @Param("p_adresse") String adresse
     );
 
-    @Procedure(procedureName = "PRC_ADD_CLIENT", outputParameterName = "p_message")
+    @Procedure(procedureName = "P_ADD_CLIENT", outputParameterName = "p_message")
     @Transactional
     String executeAddClient(
             @Param("p_nom") String nom,

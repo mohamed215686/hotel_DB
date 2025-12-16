@@ -151,7 +151,7 @@ const normalized: Facture = {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{f.statutPaiement ?? 'INCONNU'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{f.dateCreation ? format(parseISO(f.dateCreation), 'yyyy-MM-dd HH:mm') : '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {f.statutPaiement !== 'PAYÉ' && (
+                        {f.statutPaiement !== 'Payé' && (
                           <button className="text-sm text-green-600 hover:underline mr-3" onClick={() => handleMarkPaid(f.factureId)}>Mark Paid</button>
                         )}
                         <button className="text-sm text-blue-600 hover:underline" onClick={async () => {

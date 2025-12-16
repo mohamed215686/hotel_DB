@@ -43,6 +43,18 @@ export default function Clients() {
     }
   };
 
+  const handleDeleteClient = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this client? This cannot be undone.')) return;
+    try {
+      const msg = await apiService.deleteClient(id);
+      alert(msg || 'Client deleted');
+      await fetchClients();
+    } catch (error: any) {
+      console.error('Delete client error:', error);
+      alert(error.response?.data || 'Error deleting client');
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -77,6 +89,16 @@ export default function Clients() {
                     <p className="text-sm text-gray-500">Email: {client.email}</p>
                     <p className="text-sm text-gray-500">Phone: {client.telephone}</p>
                     <p className="text-sm text-gray-500">Address: {client.adresse}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(isAdmin || isManager || isReceptionniste) && (
+                      <button
+                        onClick={() => handleDeleteClient(client.clientId)}
+                        className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

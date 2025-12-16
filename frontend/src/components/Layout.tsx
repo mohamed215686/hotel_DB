@@ -8,6 +8,8 @@ import {
   FaFileInvoice, 
   FaUsers, 
   FaUserCircle,
+  FaUserAlt,
+  FaUserCog,
   FaSignOutAlt,
   FaHotel
 } from 'react-icons/fa';
@@ -76,22 +78,36 @@ export default function Layout() {
                       to="/clients"
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                     >
-                      <FaUsers />
+                      <FaUserAlt />
                       Clients
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/users"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        <FaUserCog />
+                        Users
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                <FaUserCircle />
-                <span className="hidden sm:inline">{user?.username}</span>
-                <span className="hidden md:inline text-blue-200">({user?.roleName})</span>
-              </Link>
+            <div className="flex items-center space-x-3">
+              <div className="hidden sm:flex items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-blue-700/20 transition-colors text-sm font-medium"
+                  aria-label="Profile"
+                >
+                  <FaUserCircle className="text-xl" />
+                  <div className="hidden md:flex flex-col text-left leading-tight">
+                    <span className="font-medium text-sm text-white">{user?.username}</span>
+                    <span className="text-xs text-blue-200">{user?.roleName}</span>
+                  </div>
+                </Link>
+              </div>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"

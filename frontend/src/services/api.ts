@@ -147,6 +147,11 @@ class ApiService {
     return response.data;
   }
 
+  async deleteClient(id: number): Promise<string> {
+    const response = await this.api.delete<string>(`/clients/${id}`);
+    return response.data;
+  }
+
   // Reservations endpoints
   async getReservations(): Promise<Reservation[]> {
     const response = await this.api.get<any[]>('/reservations');
@@ -328,6 +333,39 @@ async getFactures(): Promise<any[]> {
   const response = await this.api.get<any[]>('/factures');
   return response.data.map((raw: any) => this.normalizeFacture(raw));
 }
+
+  // Users endpoints (admin)
+  async getUsers(): Promise<any[]> {
+    const response = await this.api.get<any[]>('/utilisateurs');
+    return response.data;
+  }
+
+  // Roles
+  async getRoles(): Promise<any[]> {
+    const response = await this.api.get<any[]>('/roles');
+    return response.data;
+  }
+
+  async getUserById(id: number): Promise<any> {
+    const response = await this.api.get<any>(`/utilisateurs/${id}`);
+    return response.data;
+  }
+
+  async createUser(data: { login: string; motDePasseHash: string; roleId: number }): Promise<string> {
+    // Backend expects UtilisateurCreateDTO with fields: roleId, login, motDePasseHash
+    const payload = {
+      roleId: data.roleId,
+      login: data.login,
+      motDePasseHash: data.motDePasseHash,
+    };
+    const response = await this.api.post<string>('/utilisateurs', payload);
+    return response.data;
+  }
+
+  async deleteUser(id: number): Promise<string> {
+    const response = await this.api.delete<string>(`/utilisateurs/${id}`);
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();
