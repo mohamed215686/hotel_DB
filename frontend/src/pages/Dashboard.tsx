@@ -1,27 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { apiService } from '../services/api';
-import { Link } from 'react-router-dom';
-import type { Chambre, Reservation, Service } from '../types';
-import { 
-  FaBed, 
-  FaCheckCircle, 
-  FaCalendarAlt, 
-  FaSync, 
-  FaConciergeBell,
-  FaArrowRight
-} from 'react-icons/fa';
+"use client"
+
+import { useEffect, useState } from "react"
+import { useAuth } from "../context/AuthContext"
+import { apiService } from "../services/api"
+import { Link } from "react-router-dom"
+import { FaBed, FaCheckCircle, FaCalendarAlt, FaSync, FaConciergeBell, FaArrowRight, FaChartLine } from "react-icons/fa"
 
 export default function Dashboard() {
-  const { user, isAdmin, isManager, isReceptionniste } = useAuth();
+  const { user, isAdmin, isManager, isReceptionniste } = useAuth()
   const [stats, setStats] = useState({
     totalChambres: 0,
     availableChambres: 0,
     totalReservations: 0,
     activeReservations: 0,
     totalServices: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -30,12 +24,12 @@ export default function Dashboard() {
           apiService.getChambres(),
           apiService.getReservations(),
           apiService.getServices(),
-        ]);
+        ])
 
-        const availableChambres = chambres.filter((c) => c.statut === 'Disponible').length;
+        const availableChambres = chambres.filter((c) => c.statut === "Disponible").length
         const activeReservations = reservations.filter(
-          (r) => r.statut === 'Confirmée' || r.statut === 'En cours'
-        ).length;
+          (r) => r.statut === "Confirmée" || r.statut === "En cours",
+        ).length
 
         setStats({
           totalChambres: chambres.length,
@@ -43,106 +37,121 @@ export default function Dashboard() {
           totalReservations: reservations.length,
           activeReservations,
           totalServices: services.length,
-        });
+        })
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error("Error fetching stats:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchStats();
-  }, []);
+    fetchStats()
+  }, [])
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-2 border-zinc-200 border-t-zinc-900"></div>
       </div>
-    );
+    )
   }
 
   const statCards = [
     {
-      title: 'Total Rooms',
+      title: "Total Rooms",
       value: stats.totalChambres,
       icon: FaBed,
-      color: 'from-blue-500 to-blue-600',
-      link: '/chambres',
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+      link: "/chambres",
     },
     {
-      title: 'Available Rooms',
+      title: "Available Rooms",
       value: stats.availableChambres,
       icon: FaCheckCircle,
-      color: 'from-green-500 to-green-600',
+      bgColor: "bg-emerald-50",
+      iconColor: "text-emerald-600",
     },
     {
-      title: 'Total Reservations',
+      title: "Total Reservations",
       value: stats.totalReservations,
       icon: FaCalendarAlt,
-      color: 'from-purple-500 to-purple-600',
-      link: '/reservations',
+      bgColor: "bg-violet-50",
+      iconColor: "text-violet-600",
+      link: "/reservations",
     },
     {
-      title: 'Active Reservations',
+      title: "Active Reservations",
       value: stats.activeReservations,
       icon: FaSync,
-      color: 'from-orange-500 to-orange-600',
+      bgColor: "bg-amber-50",
+      iconColor: "text-amber-600",
     },
     ...(isAdmin || isManager || isReceptionniste
       ? [
           {
-            title: 'Total Services',
+            title: "Total Services",
             value: stats.totalServices,
             icon: FaConciergeBell,
-            color: 'from-pink-500 to-pink-600',
-            link: '/services',
+            bgColor: "bg-pink-50",
+            iconColor: "text-pink-600",
+            link: "/services",
           },
         ]
       : []),
-  ];
+  ]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Welcome back, <span className="font-semibold text-blue-600">{user?.username}</span>! 
-          <span className="text-gray-500"> ({user?.roleName})</span>
-        </p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Dashboard</h1>
+          <p className="mt-2 text-zinc-600 leading-relaxed">
+            Welcome back, <span className="font-medium text-zinc-900">{user?.username}</span>
+            <span className="text-zinc-400"> • </span>
+            <span className="text-zinc-500">{user?.roleName}</span>
+          </p>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-zinc-200 text-sm text-zinc-600">
+          <FaChartLine className="text-emerald-500" />
+          <span>All systems operational</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {statCards.map((card, index) => {
-          const Icon = card.icon;
+          const Icon = card.icon
           const CardContent = (
-            <div className={`bg-gradient-to-br ${card.color} rounded-xl shadow-lg p-6 text-white transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${card.link ? 'cursor-pointer' : ''}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm font-medium mb-1">{card.title}</p>
-                  <p className="text-3xl font-bold">{card.value}</p>
+            <div
+              key={index}
+              className="group relative bg-white rounded-xl border border-zinc-200 p-6 hover:shadow-lg hover:border-zinc-300 transition-all duration-200"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`flex items-center justify-center w-12 h-12 rounded-xl ${card.bgColor}`}>
+                  <Icon className={`text-xl ${card.iconColor}`} />
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-full p-4">
-                  <Icon className="text-3xl" />
-                </div>
+                {card.link && (
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-50 group-hover:bg-zinc-100 transition-colors">
+                    <FaArrowRight className="text-sm text-zinc-400 group-hover:text-zinc-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                )}
               </div>
-              {card.link && (
-                <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-blue-100 transition-colors">
-                  View all <FaArrowRight />
-                </div>
-              )}
+              <div>
+                <p className="text-sm font-medium text-zinc-600 mb-1">{card.title}</p>
+                <p className="text-3xl font-semibold text-zinc-900">{card.value}</p>
+              </div>
             </div>
-          );
+          )
 
           return card.link ? (
             <Link key={index} to={card.link} className="block">
               {CardContent}
             </Link>
           ) : (
-            <div key={index}>{CardContent}</div>
-          );
+            CardContent
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

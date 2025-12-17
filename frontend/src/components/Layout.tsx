@@ -1,118 +1,128 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { 
-  FaHome, 
-  FaBed, 
-  FaCalendarAlt, 
-  FaConciergeBell, 
-  FaFileInvoice, 
-  FaUsers, 
+"use client"
+
+import { Outlet, Link, useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
+import {
+  FaHome,
+  FaBed,
+  FaCalendarAlt,
+  FaConciergeBell,
+  FaFileInvoice,
   FaUserCircle,
   FaUserAlt,
   FaUserCog,
   FaSignOutAlt,
-  FaHotel
-} from 'react-icons/fa';
+  FaHotel,
+} from "react-icons/fa"
 
 export default function Layout() {
-  const { user, logout, isAdmin, isManager, isReceptionniste } = useAuth();
-  const navigate = useNavigate();
+  const { user, logout, isAdmin, isManager, isReceptionniste } = useAuth()
+  const navigate = useNavigate()
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    logout()
+    navigate("/login")
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Navigation */}
-      <nav className="bg-gradient-to-r from-blue-800 to-blue-900 text-white shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link to="/" className="flex items-center gap-2 text-xl font-bold hover:text-blue-200 transition-colors">
-                  <FaHotel className="text-2xl" />
-                  Hotel Management
-                </Link>
-              </div>
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-1">
+    <div className="min-h-screen bg-neutral-50">
+      <nav className="bg-zinc-950 text-white border-b border-zinc-800">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-12">
+              <Link to="/" className="flex items-center gap-3 group">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-800 group-hover:bg-zinc-700 transition-colors">
+                  <FaHotel className="text-xl text-zinc-100" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-base font-semibold tracking-tight text-zinc-50 leading-tight">
+                    Hotel Management
+                  </span>
+                  <span className="text-xs text-zinc-500 leading-tight">Professional Suite</span>
+                </div>
+              </Link>
+
+              <div className="hidden lg:flex items-center gap-1">
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                 >
-                  <FaHome />
-                  Dashboard
+                  <FaHome className="text-sm" />
+                  <span>Dashboard</span>
                 </Link>
                 <Link
                   to="/chambres"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                 >
-                  <FaBed />
-                  Rooms
+                  <FaBed className="text-sm" />
+                  <span>Rooms</span>
                 </Link>
                 <Link
                   to="/reservations"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                 >
-                  <FaCalendarAlt />
-                  Reservations
+                  <FaCalendarAlt className="text-sm" />
+                  <span>Reservations</span>
                 </Link>
                 {(isAdmin || isManager || isReceptionniste) && (
                   <>
                     <Link
                       to="/services"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                     >
-                      <FaConciergeBell />
-                      Services
+                      <FaConciergeBell className="text-sm" />
+                      <span>Services</span>
                     </Link>
                     <Link
                       to="/factures"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                     >
-                      <FaFileInvoice />
-                      Invoices
+                      <FaFileInvoice className="text-sm" />
+                      <span>Invoices</span>
                     </Link>
                     <Link
                       to="/clients"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                     >
-                      <FaUserAlt />
-                      Clients
+                      <FaUserAlt className="text-sm" />
+                      <span>Clients</span>
                     </Link>
                     {isAdmin && (
                       <Link
                         to="/users"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-all"
                       >
-                        <FaUserCog />
-                        Users
+                        <FaUserCog className="text-sm" />
+                        <span>Users</span>
                       </Link>
                     )}
                   </>
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="hidden sm:flex items-center gap-3">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-blue-700/20 transition-colors text-sm font-medium"
-                  aria-label="Profile"
-                >
-                  <FaUserCircle className="text-xl" />
-                  <div className="hidden md:flex flex-col text-left leading-tight">
-                    <span className="font-medium text-sm text-white">{user?.username}</span>
-                    <span className="text-xs text-blue-200">{user?.roleName}</span>
-                  </div>
-                </Link>
-              </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="/profile"
+                className="hidden sm:flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/80 transition-all group"
+                aria-label="Profile"
+              >
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-zinc-800 group-hover:bg-zinc-700 transition-colors">
+                  <FaUserCircle className="text-lg text-zinc-300" />
+                </div>
+                <div className="hidden md:flex flex-col leading-tight">
+                  <span className="text-sm font-medium text-zinc-100">{user?.username}</span>
+                  <span className="text-xs text-zinc-500">{user?.roleName}</span>
+                </div>
+              </Link>
+
+              <div className="w-px h-8 bg-zinc-800" />
+
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-100 transition-all"
               >
-                <FaSignOutAlt />
+                <FaSignOutAlt className="text-sm" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
@@ -120,10 +130,9 @@ export default function Layout() {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
         <Outlet />
       </main>
     </div>
-  );
+  )
 }
