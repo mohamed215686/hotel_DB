@@ -1,7 +1,14 @@
 package com.example.Backend.model;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "LIGNE_FACTURE")
@@ -9,14 +16,14 @@ public class LigneFacture {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ligne_facture_seq_gen")
     @SequenceGenerator(name = "ligne_facture_seq_gen", sequenceName = "LIGNE_FACTURE_SEQ", allocationSize = 1)
-    @Column(name = "DETAIL_ID")
+    @Column(name = "LIGNE_FACTURE_ID")
     private Long detailId;
 
     // 🚩 CHANGE 1: Use @Column and Long type instead of @ManyToOne Facture entity
     @Column(name = "FACTURE_ID", nullable = false)
     private Long factureId; // Renamed to clearly indicate it's the ID
 
-    @Column(name = "DESCRIPTION", length = 200)
+    @Column(name = "LIBELLE_DESCRIPTION", length = 200)
     private String description;
 
     @Column(name = "QUANTITE")
@@ -25,7 +32,7 @@ public class LigneFacture {
     @Column(name = "PRIX_UNITAIRE")
     private BigDecimal prixUnitaire;
 
-    @Column(name = "SOUS_TOTAL")
+    @Column(name = "MONTANT_PARTIEL")
     private BigDecimal sousTotal;
 
     // Default constructor (required by JPA)

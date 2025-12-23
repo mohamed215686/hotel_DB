@@ -92,6 +92,15 @@ export interface Facture {
   datePaiement?: string;
 }
 
+export interface LigneFacture {
+  detailId: number;
+  factureId: number;
+  description?: string;
+  quantite?: number;
+  prixUnitaire?: number;
+  sousTotal?: number;
+}
+
 export interface ChangePassword {
   newPassword: string;
 }

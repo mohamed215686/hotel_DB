@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { apiService } from "../services/api"
 import { useAuth } from "../context/AuthContext"
-import type { Facture, Reservation } from "../types"
+import type { Facture, Reservation, LigneFacture } from "../types"
 import { format, parseISO } from "date-fns"
 import { FaPlus, FaFileInvoice, FaCheckCircle, FaEye } from "react-icons/fa"
 
@@ -17,6 +17,10 @@ export default function Factures() {
   const [showModal, setShowModal] = useState(false)
   const [selectedReservationId, setSelectedReservationId] = useState<number>(0)
   const [creating, setCreating] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [selectedFacture, setSelectedFacture] = useState<Facture | null>(null)
+  const [lignes, setLignes] = useState<LigneFacture[]>([])
+  const [loadingDetail, setLoadingDetail] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -213,12 +217,19 @@ export default function Factures() {
                         <button
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-lg font-medium transition-colors"
                           onClick={async () => {
+                            setLoadingDetail(true)
                             try {
                               const refreshed = await apiService.getFactureById(f.factureId)
-                              alert(JSON.stringify(refreshed, null, 2))
-                            } catch (err) {
-                              console.error("Error fetching facture", err)
-                              alert("Error fetching facture details")
+                              const lignesData = await apiService.getLignesFacture(f.factureId)
+                              setSelectedFacture(refreshed)
+                              setLignes(lignesData || [])
+                              setDetailModalOpen(true)
+                            } catch (err: any) {
+                              console.error("Error fetching facture details", err)
+                              const msg = err?.response?.data ?? err?.message ?? "Error fetching facture details"
+                              alert(msg)
+                            } finally {
+                              setLoadingDetail(false)
                             }
                           }}
                         >
@@ -231,6 +242,92 @@ export default function Factures() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {detailModalOpen && selectedFacture && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+              onClick={() => {
+                setDetailModalOpen(false)
+                setSelectedFacture(null)
+                setLignes([])
+              }}
+            ></div>
+            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+              <div className="bg-white px-6 pt-6 pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-2xl font-semibold text-zinc-900">Invoice #{selectedFacture.factureId}</h3>
+                    <p className="text-sm text-zinc-600">Reservation #{selectedFacture.reservationId}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-zinc-600">Status</div>
+                    <div className="font-semibold">{selectedFacture.statutPaiement}</div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-zinc-200">
+                    <thead className="bg-zinc-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-zinc-900 uppercase">Description</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-zinc-900 uppercase">Qty</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-zinc-900 uppercase">Unit</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-zinc-900 uppercase">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-zinc-100">
+                      {lignes.length > 0 ? (
+                        lignes.map((ln) => (
+                          <tr key={ln.detailId}>
+                            <td className="px-4 py-2 text-sm text-zinc-700">{ln.description}</td>
+                            <td className="px-4 py-2 text-sm text-right text-zinc-700">{ln.quantite ?? 0}</td>
+                            <td className="px-4 py-2 text-sm text-right text-zinc-700">{"$" + (ln.prixUnitaire ?? 0).toFixed(2)}</td>
+                            <td className="px-4 py-2 text-sm text-right text-zinc-900 font-semibold">{"$" + (ln.sousTotal ?? ((ln.quantite ?? 0) * (ln.prixUnitaire ?? 0))).toFixed(2)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-6 text-center text-sm text-zinc-600">No line items</td>
+                        </tr>
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t">
+                        <td className="px-4 py-3" />
+                        <td className="px-4 py-3" />
+                        <td className="px-4 py-3 text-sm font-semibold text-zinc-700 text-right">Calculated Total</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-zinc-900 text-right">
+                          {"$" + lignes.reduce((s, ln) => s + (Number(ln.sousTotal ?? (Number(ln.quantite ?? 0) * Number(ln.prixUnitaire ?? 0))) || 0), 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3" />
+                        <td className="px-4 py-3" />
+                        <td className="px-4 py-3 text-sm font-semibold text-zinc-700 text-right">Invoice Total</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-zinc-900 text-right">{"$" + (typeof selectedFacture.montantTotal === 'number' ? selectedFacture.montantTotal.toFixed(2) : selectedFacture.montantTotal)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+              <div className="bg-zinc-50 px-6 py-4 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setDetailModalOpen(false)
+                    setSelectedFacture(null)
+                    setLignes([])
+                  }}
+                  className="px-5 py-2.5 bg-white border border-zinc-200 text-zinc-700 rounded-xl font-medium hover:bg-zinc-50"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

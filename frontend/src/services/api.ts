@@ -12,6 +12,7 @@ import type {
   Service,
   ServiceCreate,
   Facture,
+  LigneFacture,
   ChangePassword,
   ChangeUsername,
 } from '../types';
@@ -327,6 +328,24 @@ async getFactureById(id: number): Promise<any> {
   // return raw data (component will normalize) or return normalized object:
   return this.normalizeFacture(response.data);
 }
+
+  async getLignesFacture(factureId: number): Promise<LigneFacture[]> {
+    try {
+      const response = await this.api.get<any[]>(`/lignes-facture/facture/${factureId}`);
+      return (response.data || []).map((raw: any) => ({
+        detailId: raw.detailId ?? raw.DETAIL_ID ?? raw.id ?? 0,
+        factureId: raw.factureId ?? raw.FACTURE_ID ?? raw.factureId ?? 0,
+        description: raw.description ?? raw.DESCRIPTION ?? '',
+        quantite: Number(raw.quantite ?? raw.QUANTITE ?? 0),
+        prixUnitaire: Number(raw.prixUnitaire ?? raw.PRIX_UNITAIRE ?? 0),
+        sousTotal: Number(raw.sousTotal ?? raw.SOUS_TOTAL ?? 0),
+      })) as LigneFacture[];
+    } catch (err: any) {
+      // Surface backend error message when available
+      const msg = err?.response?.data ?? err?.message ?? 'Unknown error fetching ligne factures';
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
+  }
 
 // Add this method to fetch all invoices (requires backend GET /factures)
 async getFactures(): Promise<any[]> {
