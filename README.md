@@ -229,8 +229,3 @@ The app will be available at `http://localhost:3000` and expects the backend at 
 
 No license has been specified for this project yet. All rights reserved by the author unless stated otherwise.
 
----
-
-<div align="center">
-  <sub>Built by <a href="https://github.com/mohamed215686">mohamed215686</a></sub>
-</div>
